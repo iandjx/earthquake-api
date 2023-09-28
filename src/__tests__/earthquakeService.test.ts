@@ -1,4 +1,4 @@
-import data from '../data/earthquakeData'
+import data from '../mocks/data/earthquakeData'
 import { fetchEarthquakeData } from '../services/earthquakeService'
 
 describe('Fetching and storing earthquake data', () => {

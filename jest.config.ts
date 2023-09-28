@@ -5,6 +5,7 @@ const config: Config = {
 
   preset: 'ts-jest',
   testEnvironment: 'node',
+  setupFilesAfterEnv: ['./src/mocks/setupTests.ts'],
 }
 
 export default config
