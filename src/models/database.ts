@@ -1,5 +1,7 @@
+import { Earthquake } from '../types'
+
 export interface Database {
-  data?: any
+  data?: Earthquake[]
 }
 
 const connectToDatabase = (): Database => {

@@ -1,12 +1,12 @@
 import data from '../mocks/data/earthquakeData'
-import connectToDatabase from '../models/database'
-import createEarthquakeModel from '../models/earthquakeModel'
+import connectToDatabaseStub from '../mocks/stubs/models/database'
+import createEarthquakeModelStub from '../mocks/stubs/models/earthquakeModel'
 import createEarthquakeService from '../services/earthquakeService'
 
 describe('Fetching and storing earthquake data', () => {
   it('should fetch and store earthquake data', async () => {
-    const database = connectToDatabase()
-    const earthquakeModel = createEarthquakeModel(database)
+    const database = connectToDatabaseStub()
+    const earthquakeModel = createEarthquakeModelStub(database)
     const earthquakeService = createEarthquakeService(earthquakeModel)
     await earthquakeService.fetchEarthquakeData()
 

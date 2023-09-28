@@ -1,13 +1,14 @@
+import { Earthquake } from '../types'
 import { Database } from './database'
 
 export interface EarthquakeModel {
-  saveEarthquakeData: (data: any) => void
-  queryEarthquakeData: () => any
+  saveEarthquakeData: (data: Earthquake[]) => void
+  queryEarthquakeData: () => Earthquake[] | undefined
 }
 
 const createEarthquakeModel = (database: Database) => {
   return {
-    saveEarthquakeData: (data: any) => {
+    saveEarthquakeData: (data: Earthquake[]) => {
       database.data = data
     },
     queryEarthquakeData: () => {

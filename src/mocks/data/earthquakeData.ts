@@ -1,4 +1,6 @@
-const data = [
+import { Earthquake } from '../../types'
+
+const data: Earthquake[] = [
   {
     type: 'Feature',
     properties: {
