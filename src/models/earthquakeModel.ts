@@ -9,6 +9,7 @@ import { Earthquake } from '../types'
 import { chunkArray } from '../utils'
 import { Tables } from '../constants'
 import { QueryOptions } from '../services/earthquakeService'
+import Redis from 'ioredis'
 
 export interface EarthquakeModel {
   saveEarthquakeData: (data: Earthquake[]) => void
@@ -18,10 +19,11 @@ export interface EarthquakeModel {
 }
 
 const createEarthquakeModel = (
-  database: DynamoDBDocumentClient,
+  database: [DynamoDBDocumentClient, Redis],
 ): EarthquakeModel => {
   return {
     saveEarthquakeData: async (data: Earthquake[]) => {
+      const [docClient] = database
       const earthquakeChunks = chunkArray(data, 25)
 
       for (const chunk of earthquakeChunks) {
@@ -37,12 +39,20 @@ const createEarthquakeModel = (
           },
         })
 
-        await database.send(command)
+        await docClient.send(command)
       }
     },
     queryEarthquakeData: async (options?: QueryOptions) => {
+      const [docClient, redisClient] = database
+      const redisKey = `earthquake_data_${JSON.stringify(options)}`
+
+      const redisData = await redisClient.get(redisKey)
+      if (redisData) {
+        return JSON.parse(redisData)
+      }
+
       const paginatorConfig: DynamoDBDocumentPaginationConfiguration = {
-        client: database,
+        client: docClient,
         pageSize: options?.pagination?.size || 20,
         startingToken: options?.pagination?.cursor,
       }
@@ -52,6 +62,7 @@ const createEarthquakeModel = (
       const paginator = paginateScan(paginatorConfig, params)
 
       const page = await paginator.next()
+      await redisClient.set(redisKey, JSON.stringify(page?.value?.Items))
 
       return page?.value?.Items as Earthquake[] | undefined
     },

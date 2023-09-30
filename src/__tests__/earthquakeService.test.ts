@@ -10,22 +10,34 @@ import createEarthquakeService, {
 import connectToDatabase from '../models/database'
 import createEarthquakeModel from '../models/earthquakeModel'
 import { formattedData } from '../mocks/data/earthquakeData'
+import { GenericContainer, StartedTestContainer } from 'testcontainers'
 
 describe('Earthquake service tests', () => {
   let earthquakeService: EarthquakeService
   jest.setTimeout(120000)
 
   let startedContainer: StartedDynamoDBContainer
+  let redisContainer: StartedTestContainer
   beforeAll(async () => {
     startedContainer = await new DynamoDBContainer().start()
+    redisContainer = await new GenericContainer('redis')
+      .withExposedPorts(6379)
+      .start()
+
     const database = await connectToDatabase({
-      endpoint: `http://${startedContainer.getContainerIpAddress()}:${startedContainer.getMappedPort(
-        DynamoDBContainer.MAPPED_PORT,
-      )}`,
-      region: 'eu-central-1',
-      credentials: {
-        accessKeyId: 'dummy',
-        secretAccessKey: 'dummy',
+      dynamoDbConfig: {
+        endpoint: `http://${startedContainer.getContainerIpAddress()}:${startedContainer.getMappedPort(
+          DynamoDBContainer.MAPPED_PORT,
+        )}`,
+        region: 'eu-central-1',
+        credentials: {
+          accessKeyId: 'dummy',
+          secretAccessKey: 'dummy',
+        },
+      },
+      redisConfig: {
+        host: redisContainer.getContainerIpAddress(),
+        port: redisContainer.getMappedPort(6379),
       },
     })
     const earthquakeModel = createEarthquakeModel(database)
@@ -40,12 +52,14 @@ describe('Earthquake service tests', () => {
 
   afterAll(async () => {
     await startedContainer.stop()
+    await redisContainer.stop()
     server.close()
   })
 
   it('Should fetch and store earthquake data', async () => {
     await earthquakeService.fetchEarthquakeData()
     const res = await earthquakeService.findEarthquakeData()
+    await earthquakeService.findEarthquakeData()
     expect(res?.length).toEqual(formattedData.length)
   })
 
@@ -98,7 +112,6 @@ describe('Earthquake service tests', () => {
     const earthquakes = allData?.filter(
       (earthquake) => earthquake.time < 1695986854464 && earthquake.mag < 1,
     )
-    console.log(earthquakes?.length)
 
     const res = await earthquakeService.findEarthquakeData({
       time: { operator: Comparators.lt, value: 1695986854464 },
