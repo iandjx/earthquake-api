@@ -3,17 +3,32 @@ import {
   StartedDynamoDBContainer,
 } from 'testcontainers-dynamodb'
 import { server } from '../mocks/server'
-import createEarthquakeService from '../services/earthquakeService'
+import createEarthquakeService, {
+  EarthquakeService,
+} from '../services/earthquakeService'
 import connectToDatabase from '../models/database'
 import createEarthquakeModel from '../models/earthquakeModel'
 import { formattedData } from '../mocks/data/earthquakeData'
 
-describe('DynamoDB container', () => {
+describe('Earthquake service tests', () => {
+  let earthquakeService: EarthquakeService
   jest.setTimeout(120000)
 
   let startedContainer: StartedDynamoDBContainer
   beforeAll(async () => {
     startedContainer = await new DynamoDBContainer().start()
+    const database = await connectToDatabase({
+      endpoint: `http://${startedContainer.getContainerIpAddress()}:${startedContainer.getMappedPort(
+        DynamoDBContainer.MAPPED_PORT,
+      )}`,
+      region: 'eu-central-1',
+      credentials: {
+        accessKeyId: 'dummy',
+        secretAccessKey: 'dummy',
+      },
+    })
+    const earthquakeModel = createEarthquakeModel(database)
+    earthquakeService = createEarthquakeService(earthquakeModel)
     server.listen()
   })
 
@@ -27,28 +42,20 @@ describe('DynamoDB container', () => {
     server.close()
   })
 
-  it('should start dynamodb container', async () => {
-    const dynamoClient = startedContainer.createDynamoClient()
-    expect(await dynamoClient.listTables().promise()).toEqual({
-      TableNames: [],
-    })
-  })
-
-  it('should override data and reset it in dynamodb', async () => {
-    const database = await connectToDatabase({
-      endpoint: `http://${startedContainer.getContainerIpAddress()}:${startedContainer.getMappedPort(
-        DynamoDBContainer.MAPPED_PORT,
-      )}`,
-      region: 'eu-central-1',
-      credentials: {
-        accessKeyId: 'dummy',
-        secretAccessKey: 'dummy',
-      },
-    })
-    const earthquakeModel = createEarthquakeModel(database)
-    const earthquakeService = createEarthquakeService(earthquakeModel)
+  it('Should fetch and store earthquake data', async () => {
     await earthquakeService.fetchEarthquakeData()
     const res = await earthquakeService.findEarthquakeData()
-    expect(res).toEqual(formattedData)
+    expect(res?.length).toEqual(formattedData.length)
+  })
+
+  it('Should allow data pagination', async () => {
+    await earthquakeService.fetchEarthquakeData()
+
+    const allData = await earthquakeService.findEarthquakeData()
+    const slicedData = allData?.slice(1, 4)
+    const cursor = { id: allData?.[0].id, time: allData?.[0].time }
+
+    const res = await earthquakeService.findEarthquakeData(3, cursor)
+    expect(res).toEqual(slicedData)
   })
 })

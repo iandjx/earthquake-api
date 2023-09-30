@@ -3,7 +3,17 @@ import { EARTHQUAKE_URL } from '../constants'
 import { EarthquakeModel } from '../models/earthquakeModel'
 import { Earthquake, RawEarthquake } from '../types'
 
-const createEarthquakeService = (earthquakeModel: EarthquakeModel) => {
+export interface EarthquakeService {
+  fetchEarthquakeData: () => Promise<void | Error>
+  findEarthquakeData: (
+    size?: number,
+    cursor?: { id?: string; time?: number },
+  ) => Promise<Earthquake[] | undefined>
+}
+
+const createEarthquakeService = (
+  earthquakeModel: EarthquakeModel,
+): EarthquakeService => {
   return {
     fetchEarthquakeData: async () => {
       try {
@@ -20,8 +30,8 @@ const createEarthquakeService = (earthquakeModel: EarthquakeModel) => {
         return Error('Error fetching earthquake data')
       }
     },
-    findEarthquakeData: () => {
-      return earthquakeModel.queryEarthquakeData()
+    findEarthquakeData: (size = 20, cursor) => {
+      return earthquakeModel.queryEarthquakeData(size, cursor)
     },
   }
 }
