@@ -23,28 +23,6 @@ const connectToDatabase = async (
   const docClient = DynamoDBDocumentClient.from(client)
 
   await migrateTables(client)
-  // const command = new PutCommand({
-  //   TableName: 'Earthquakes',
-  //   Item: {
-  //     id: '1',
-  //     mag: 1,
-  //     time: 1,
-  //     place: 'test',
-  //   },
-  // })
-
-  // await docClient.send(command)
-
-  // const readCommand = new GetCommand({
-  //   TableName: 'Earthquakes',
-  //   Key: {
-  //     id: '1',
-  //   },
-  // })
-
-  // const res = await docClient.send(readCommand)
-  // console.log(res.Item)
-
   return docClient
 }
 
