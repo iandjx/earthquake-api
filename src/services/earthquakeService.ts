@@ -3,11 +3,31 @@ import { EARTHQUAKE_URL } from '../constants'
 import { EarthquakeModel } from '../models/earthquakeModel'
 import { Earthquake, RawEarthquake } from '../types'
 
+export enum Comparators {
+  gt = '>',
+  lt = '<',
+  eq = '=',
+}
+
+export interface QueryOptions {
+  time?: {
+    operator: Comparators
+    value: number
+  }
+  magnitude?: {
+    operator: Comparators
+    value: number
+  }
+  pagination?: {
+    size?: number
+    cursor?: { id?: string; time?: number }
+  }
+}
+
 export interface EarthquakeService {
   fetchEarthquakeData: () => Promise<void | Error>
   findEarthquakeData: (
-    size?: number,
-    cursor?: { id?: string; time?: number },
+    options?: QueryOptions,
   ) => Promise<Earthquake[] | undefined>
 }
 
@@ -30,8 +50,8 @@ const createEarthquakeService = (
         return Error('Error fetching earthquake data')
       }
     },
-    findEarthquakeData: (size = 20, cursor) => {
-      return earthquakeModel.queryEarthquakeData(size, cursor)
+    findEarthquakeData: (options?: QueryOptions) => {
+      return earthquakeModel.queryEarthquakeData(options)
     },
   }
 }

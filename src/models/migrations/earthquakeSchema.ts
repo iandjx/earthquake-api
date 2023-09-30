@@ -26,10 +26,6 @@ const EarthquakeSchema = {
       KeyType: 'RANGE',
     },
   ],
-  ProvisionedThroughput: {
-    ReadCapacityUnits: 5,
-    WriteCapacityUnits: 5,
-  },
   BillingMode: 'PAY_PER_REQUEST',
   GlobalSecondaryIndexes: [
     {
@@ -39,39 +35,12 @@ const EarthquakeSchema = {
           AttributeName: 'mag',
           KeyType: 'HASH', // GSI Hash Key
         },
-        {
-          AttributeName: 'id',
-          KeyType: 'RANGE', // GSI Range Key (for uniqueness)
-        },
       ],
       Projection: {
         ProjectionType: 'ALL',
-      },
-      ProvisionedThroughput: {
-        ReadCapacityUnits: 5,
-        WriteCapacityUnits: 5,
-      },
-    },
-    {
-      IndexName: 'TimeIndex',
-      KeySchema: [
-        {
-          AttributeName: 'time',
-          KeyType: 'HASH', // GSI Hash Key
-        },
-        {
-          AttributeName: 'id',
-          KeyType: 'RANGE', // GSI Range Key (for uniqueness)
-        },
-      ],
-      Projection: {
-        ProjectionType: 'ALL',
-      },
-      ProvisionedThroughput: {
-        ReadCapacityUnits: 5,
-        WriteCapacityUnits: 5,
       },
     },
   ],
 }
+
 export default EarthquakeSchema

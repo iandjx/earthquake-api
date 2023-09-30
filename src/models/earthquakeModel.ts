@@ -8,12 +8,12 @@ import {
 import { Earthquake } from '../types'
 import { chunkArray } from '../utils'
 import { Tables } from '../constants'
+import { QueryOptions } from '../services/earthquakeService'
 
 export interface EarthquakeModel {
   saveEarthquakeData: (data: Earthquake[]) => void
   queryEarthquakeData: (
-    size?: number,
-    cursor?: { id?: string; time?: number },
+    options?: QueryOptions,
   ) => Promise<Earthquake[] | undefined>
 }
 
@@ -40,15 +40,24 @@ const createEarthquakeModel = (
         await database.send(command)
       }
     },
-    queryEarthquakeData: async (pageSize, cursor) => {
+    queryEarthquakeData: async (options?: QueryOptions) => {
       const paginatorConfig: DynamoDBDocumentPaginationConfiguration = {
         client: database,
-        pageSize,
-        startingToken: cursor,
+        pageSize: options?.pagination?.size || 20,
+        startingToken: options?.pagination?.cursor,
       }
 
       const params: ScanCommandInput = {
         TableName: Tables.EARTHQUAKES,
+        ...(options?.magnitude && {
+          FilterExpression: `#mag ${options?.magnitude?.operator} :magValue`,
+          ExpressionAttributeNames: {
+            '#mag': 'mag',
+          },
+          ExpressionAttributeValues: {
+            ':magValue': options?.magnitude?.value, // Replace with your desired magnitude value
+          },
+        }),
       }
 
       const paginator = paginateScan(paginatorConfig, params)

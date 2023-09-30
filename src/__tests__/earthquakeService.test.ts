@@ -4,6 +4,7 @@ import {
 } from 'testcontainers-dynamodb'
 import { server } from '../mocks/server'
 import createEarthquakeService, {
+  Comparators,
   EarthquakeService,
 } from '../services/earthquakeService'
 import connectToDatabase from '../models/database'
@@ -55,7 +56,23 @@ describe('Earthquake service tests', () => {
     const slicedData = allData?.slice(1, 4)
     const cursor = { id: allData?.[0].id, time: allData?.[0].time }
 
-    const res = await earthquakeService.findEarthquakeData(3, cursor)
+    const res = await earthquakeService.findEarthquakeData({
+      pagination: { cursor, size: 3 },
+    })
+
     expect(res).toEqual(slicedData)
+  })
+
+  it('Should allow filtering based on mag value', async () => {
+    await earthquakeService.fetchEarthquakeData()
+
+    const allData = await earthquakeService.findEarthquakeData()
+    const mildEarthquakes = allData?.filter((earthquake) => earthquake.mag < 1)
+
+    const res = await earthquakeService.findEarthquakeData({
+      magnitude: { operator: Comparators.lt, value: 1 },
+    })
+
+    expect(res?.length).toEqual(mildEarthquakes?.length)
   })
 })
