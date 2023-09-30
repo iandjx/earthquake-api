@@ -75,4 +75,36 @@ describe('Earthquake service tests', () => {
 
     expect(res?.length).toEqual(mildEarthquakes?.length)
   })
+
+  it('Should allow filtering based on time value', async () => {
+    await earthquakeService.fetchEarthquakeData()
+
+    const allData = await earthquakeService.findEarthquakeData()
+    const earthquakes = allData?.filter(
+      (earthquake) => earthquake.time < 1695986854464,
+    )
+
+    const res = await earthquakeService.findEarthquakeData({
+      time: { operator: Comparators.lt, value: 1695986854464 },
+    })
+
+    expect(res?.length).toEqual(earthquakes?.length)
+  })
+
+  it('Should allow filtering based on time and mag value', async () => {
+    await earthquakeService.fetchEarthquakeData()
+
+    const allData = await earthquakeService.findEarthquakeData()
+    const earthquakes = allData?.filter(
+      (earthquake) => earthquake.time < 1695986854464 && earthquake.mag < 1,
+    )
+    console.log(earthquakes?.length)
+
+    const res = await earthquakeService.findEarthquakeData({
+      time: { operator: Comparators.lt, value: 1695986854464 },
+      magnitude: { operator: Comparators.lt, value: 1 },
+    })
+
+    expect(res?.length).toEqual(earthquakes?.length)
+  })
 })
