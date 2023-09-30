@@ -8,7 +8,16 @@ export enum Comparators {
   lt = '<',
   eq = '=',
 }
-
+export interface QueryOptions {
+  time?: {
+    operator: Comparators
+    value: number
+  }
+  magnitude?: {
+    operator: Comparators
+    value: number
+  }
+}
 export interface QueryOptions {
   time?: {
     operator: Comparators

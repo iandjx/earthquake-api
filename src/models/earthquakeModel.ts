@@ -47,18 +47,7 @@ const createEarthquakeModel = (
         startingToken: options?.pagination?.cursor,
       }
 
-      const params: ScanCommandInput = {
-        TableName: Tables.EARTHQUAKES,
-        ...(options?.magnitude && {
-          FilterExpression: `#mag ${options?.magnitude?.operator} :magValue`,
-          ExpressionAttributeNames: {
-            '#mag': 'mag',
-          },
-          ExpressionAttributeValues: {
-            ':magValue': options?.magnitude?.value, // Replace with your desired magnitude value
-          },
-        }),
-      }
+      const params = generateScanCommand(options)
 
       const paginator = paginateScan(paginatorConfig, params)
 
@@ -69,3 +58,37 @@ const createEarthquakeModel = (
   }
 }
 export default createEarthquakeModel
+
+const generateScanCommand = (queryOptions?: QueryOptions): ScanCommandInput => {
+  const params: ScanCommandInput = {
+    TableName: Tables.EARTHQUAKES,
+  }
+
+  if (queryOptions?.time) {
+    params.FilterExpression = `#time ${queryOptions.time.operator} :timeValue`
+    params.ExpressionAttributeNames = {
+      '#time': 'time',
+    }
+    params.ExpressionAttributeValues = {
+      ':timeValue': queryOptions.time.value,
+    }
+  }
+
+  if (queryOptions?.magnitude) {
+    params.FilterExpression = params.FilterExpression
+      ? `${params.FilterExpression} AND #mag ${queryOptions.magnitude.operator} :magValue`
+      : `#mag ${queryOptions.magnitude.operator} :magValue`
+
+    params.ExpressionAttributeNames = {
+      ...params.ExpressionAttributeNames,
+      '#mag': 'mag',
+    }
+
+    params.ExpressionAttributeValues = {
+      ...params.ExpressionAttributeValues,
+      ':magValue': queryOptions.magnitude.value,
+    }
+  }
+
+  return params
+}
