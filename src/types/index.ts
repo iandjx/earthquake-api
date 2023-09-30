@@ -21,10 +21,10 @@ export interface RawEarthquake {
     sources: string
     types: string
     type: string
-    nst: number
-    dmin: number
+    nst: number | null
+    dmin: number | null
     rms: number
-    gap: number
+    gap: number | null
     magType: string
     title: string
   }
@@ -56,10 +56,10 @@ export interface Earthquake {
   sources: string
   types: string
   type: string
-  nst: number
-  dmin: number
+  nst: number | null
+  dmin: number | null
   rms: number
-  gap: number
+  gap: number | null
   magType: string
   title: string
   coordinates: [number, number, number]
