@@ -21,6 +21,10 @@ const EarthquakeSchema = {
       AttributeName: 'id',
       KeyType: 'HASH',
     },
+    {
+      AttributeName: 'time',
+      KeyType: 'RANGE',
+    },
   ],
   ProvisionedThroughput: {
     ReadCapacityUnits: 5,
