@@ -33,10 +33,10 @@ const createRequestModel = (
 
       const command = new QueryCommand({
         TableName: 'Requests',
-        KeyConditionExpression: '#ip = :ip AND #timestamp = :timestamp', // Use aliases for attribute names
+        KeyConditionExpression: '#ip = :ip AND #timestamp = :timestamp',
         ExpressionAttributeNames: {
-          '#ip': 'ip', // Define an alias for 'ip'
-          '#timestamp': 'timestamp', // Define an alias for 'timestamp'
+          '#ip': 'ip',
+          '#timestamp': 'timestamp',
         },
         ExpressionAttributeValues: {
           ':ip': key.ip,
