@@ -65,3 +65,12 @@ export interface Earthquake {
   coordinates: [number, number, number]
   id: string
 }
+
+export interface RequestData {
+  ip: string
+  timestamp: number
+  query: string
+  userAgent: string
+  acceptLanguage: string
+  path: string
+}

@@ -7,6 +7,7 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { Earthquake } from '../types'
 import EarthquakeSchema from './migrations/earthquakeSchema'
 import Redis from 'ioredis'
+import RequestSchema from './migrations/requestSchema'
 
 export interface Database {
   data?: Earthquake[]
@@ -27,6 +28,8 @@ export interface ClientConfig {
   }
 }
 
+const schemas = [EarthquakeSchema, RequestSchema]
+
 const connectToDatabase = async (
   config: ClientConfig,
 ): Promise<[DynamoDBDocumentClient, Redis]> => {
@@ -42,9 +45,13 @@ const connectToDatabase = async (
 export default connectToDatabase
 
 const migrateTables = async (client: DynamoDBClient) => {
-  try {
-    await client.send(new DescribeTableCommand({ TableName: 'Earthquakes' }))
-  } catch (err) {
-    await client.send(new CreateTableCommand(EarthquakeSchema))
+  for (const schema of schemas) {
+    try {
+      await client.send(
+        new DescribeTableCommand({ TableName: schema.TableName }),
+      )
+    } catch (err) {
+      await client.send(new CreateTableCommand(schema))
+    }
   }
 }

@@ -3,6 +3,7 @@ const EARTHQUAKE_URL =
 
 enum Tables {
   EARTHQUAKES = 'Earthquakes',
+  REQUESTS = 'Requests',
 }
 
 export { EARTHQUAKE_URL, Tables }
