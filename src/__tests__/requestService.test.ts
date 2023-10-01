@@ -12,7 +12,7 @@ import createRequestService, {
 import dayjs from 'dayjs'
 import { RequestData } from '../types'
 
-describe('Earthquake service tests', () => {
+describe('Request service tests', () => {
   let requestService: RequestService
   jest.setTimeout(120000)
 
