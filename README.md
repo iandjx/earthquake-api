@@ -71,6 +71,10 @@ To interact with the Earthquake API, you can use the following endpoints and que
   - Endpoint: `GET http://localhost:3000/earthquake/fetch`
   - Fetches and saves earthquake data in Dynamo DB docker container
 
+  ```bash
+  curl -X GET "http://localhost:3000/earthquake/fetch"
+  ```
+
 - **Find Earthquake Data**:
 
   - Endpoint: `GET http://localhost:3000/earthquake/find`
