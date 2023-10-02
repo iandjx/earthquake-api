@@ -6,6 +6,7 @@ import { server } from '../mocks/server'
 import createEarthquakeService, {
   Comparators,
   EarthquakeService,
+  calculateMonthlyAverages,
 } from '../services/earthquakeService'
 import connectToDatabase from '../models/database'
 import createEarthquakeModel from '../models/earthquakeModel'
@@ -119,5 +120,16 @@ describe('Earthquake service tests', () => {
     })
 
     expect(res?.length).toEqual(earthquakes?.length)
+  })
+
+  it('Should show average magnitude per month for a given year', async () => {
+    await earthquakeService.findEarthquakeData()
+    const allData = await earthquakeService.findEarthquakeData()
+    if (!allData) {
+      return
+    }
+    const averages = calculateMonthlyAverages(allData, 2023)
+    const res = await earthquakeService.getAveMagPerMonth(2023)
+    expect(averages).toEqual(res)
   })
 })
