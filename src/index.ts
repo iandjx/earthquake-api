@@ -1,6 +1,4 @@
 import { config } from 'dotenv'
-config()
-
 import express from 'express'
 import connectToDatabase from './models/database'
 import createRequestModel from './models/requestModel'
@@ -8,6 +6,9 @@ import createRequestService from './services/requestService'
 import createRequestLogger from './middlewares/requestLogger'
 import createEarthquakeModel from './models/earthquakeModel'
 import createEarthquakeService from './services/earthquakeService'
+import generateEarthquakeRoutes from './routes/earthquake'
+
+config()
 
 const app = express()
 const port = 3000
@@ -30,18 +31,16 @@ const main = async () => {
 
   const earthquakeModel = createEarthquakeModel(database)
   const earthquakeService = createEarthquakeService(earthquakeModel)
-  // await earthquakeService.fetchEarthquakeData()
-  const res = await earthquakeService.getAveMagPerMonth(2023)
-  console.log(res)
 
   const requestModel = createRequestModel(database)
   const requestService = createRequestService(requestModel)
   const requestLogger = createRequestLogger(requestService)
 
   app.use(requestLogger)
-  app.get('/', (req, res) => {
-    res.send('Hello, Express.js!')
-  })
+
+  app.use(express.json())
+
+  app.use('/earthquake', generateEarthquakeRoutes(earthquakeService))
 
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`)
