@@ -10,6 +10,7 @@ import { chunkArray } from '../utils'
 import { Tables } from '../constants'
 import { QueryOptions } from '../services/earthquakeService'
 import Redis from 'ioredis'
+import dayjs from 'dayjs'
 
 export interface EarthquakeModel {
   saveEarthquakeData: (data: Earthquake[]) => void
@@ -42,29 +43,51 @@ const createEarthquakeModel = (
         await docClient.send(command)
       }
     },
+
     queryEarthquakeData: async (options?: QueryOptions) => {
       const [docClient, redisClient] = database
       const redisKey = `earthquake_data_${JSON.stringify(options)}`
+      const oneWeekInMilliseconds = dayjs().add(7, 'day').diff(dayjs())
+
+      const lastFetchTimestamp = await redisClient.get(
+        `last_fetch_timestamp_${redisKey}`,
+      )
+      const currentTime = Date.now()
+
+      if (
+        !lastFetchTimestamp ||
+        currentTime - Number(lastFetchTimestamp) >= oneWeekInMilliseconds
+      ) {
+        await redisClient.del(redisKey)
+
+        const paginatorConfig: DynamoDBDocumentPaginationConfiguration = {
+          client: docClient,
+          pageSize: options?.pagination?.size || 20,
+          startingToken: options?.pagination?.cursor,
+        }
+
+        const params = generateScanCommand(options)
+
+        const paginator = paginateScan(paginatorConfig, params)
+
+        const page = await paginator.next()
+        const earthquakeData = page?.value?.Items as Earthquake[] | undefined
+
+        await redisClient.set(redisKey, JSON.stringify(earthquakeData))
+        await redisClient.set(
+          `last_fetch_timestamp_${redisKey}`,
+          String(currentTime),
+        )
+
+        return earthquakeData
+      }
 
       const redisData = await redisClient.get(redisKey)
       if (redisData) {
         return JSON.parse(redisData)
       }
 
-      const paginatorConfig: DynamoDBDocumentPaginationConfiguration = {
-        client: docClient,
-        pageSize: options?.pagination?.size || 20,
-        startingToken: options?.pagination?.cursor,
-      }
-
-      const params = generateScanCommand(options)
-
-      const paginator = paginateScan(paginatorConfig, params)
-
-      const page = await paginator.next()
-      await redisClient.set(redisKey, JSON.stringify(page?.value?.Items))
-
-      return page?.value?.Items as Earthquake[] | undefined
+      return undefined
     },
   }
 }
