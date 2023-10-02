@@ -6,6 +6,8 @@ import connectToDatabase from './models/database'
 import createRequestModel from './models/requestModel'
 import createRequestService from './services/requestService'
 import createRequestLogger from './middlewares/requestLogger'
+import createEarthquakeModel from './models/earthquakeModel'
+import createEarthquakeService from './services/earthquakeService'
 
 const app = express()
 const port = 3000
@@ -25,6 +27,13 @@ const main = async () => {
       port: parseInt(process.env.REDIS_PORT as string),
     },
   })
+
+  const earthquakeModel = createEarthquakeModel(database)
+  const earthquakeService = createEarthquakeService(earthquakeModel)
+  // await earthquakeService.fetchEarthquakeData()
+  const res = await earthquakeService.getAveMagPerMonth(2023)
+  console.log(res)
+
   const requestModel = createRequestModel(database)
   const requestService = createRequestService(requestModel)
   const requestLogger = createRequestLogger(requestService)
