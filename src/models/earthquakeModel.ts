@@ -25,7 +25,7 @@ const createEarthquakeModel = (
   return {
     saveEarthquakeData: async (data: Earthquake[]) => {
       const [docClient] = database
-      const earthquakeChunks = chunkArray(data, 25)
+      const earthquakeChunks = chunkArray<Earthquake>(data, 25)
 
       for (const chunk of earthquakeChunks) {
         const putRequests = chunk.map((earthquake: Earthquake) => ({
